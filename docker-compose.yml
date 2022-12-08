@@ -1,0 +1,97 @@
+version: '2.1'
+services:
+  doris-fe:
+    image: yiluxiangbei/doris-init:0.14.0-611
+    container_name: doris-fe
+    ports:
+      - 8030:8030
+      - 9010:9010
+      - 9020:9020
+      - 9030:9030
+    environment:
+      - DORIS_ROLE=fe-leader
+    volumes:
+      - ./doris/fe/doris-meta:/opt/doris/fe/doris-meta
+      - ./doris/fe/log:/opt/doris/fe/log
+      - ./doris/conf/fe.conf:/opt/doris/fe/conf/fe.conf
+    networks:
+      tortoise-network:
+        ipv4_address: 172.20.0.198
+    restart: always
+
+  doris-be:
+    image: yiluxiangbei/doris-init:0.14.0-611
+    container_name: doris-be
+    environment:
+      - DORIS_ROLE=be
+    ports:
+      - "8040:8040"
+      - "8060:8060"
+      - "9050:9050"
+      - "9060:9060"
+      - "9070:9070"
+    volumes:
+      - ./doris/be/storage:/opt/doris/be/storage
+      - ./doris/be/log:/opt/doris/be/log
+      - ./doris/conf/be.conf:/opt/doris/be/conf/be.conf
+    networks:
+      tortoise-network:
+        ipv4_address: 172.20.0.199
+    restart: always
+
+  kettle:
+    image: yiluxiangbei/tortoise-kettle:8.3.1
+    container_name: kettle
+    ports:
+      - 8010:9051
+      - 8011:18080
+    volumes:
+      - ./doris/conf/:/opt/tortoise/conf
+      - ./tortoise/kettle-data:/opt/tortoise/data/kettle
+    networks:
+      - tortoise-network
+    restart: always
+    
+  tortoise-mysql:
+    image: yiluxiangbei/tortoise-mysql:5.7.25
+    container_name: tortoise-mysql
+    ports:
+      - 3316:3306
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --default-authentication-plugin=mysql_native_password
+    volumes:
+      - ./db/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./db/data:/var/lib/mysql
+      - ./db/init-sql:/docker-entrypoint-initdb.d
+    networks:
+      - tortoise-network
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    restart: always
+
+  tortoise:
+    image: yiluxiangbei/tortoise:1.0
+    container_name: tortoise
+    ports:
+      - 8061:8081
+    volumes:
+      - ./tortoise/conf:/opt/tortoise/conf
+      - ./tortoise/logs:/opt/tortoise/logs
+      - ./tortoise/plugins:/opt/tortoise/plugins/thirdpart
+      - ./tortoise/kettle-data:/opt/tortoise/data/kettle
+    depends_on:
+      - tortoise-mysql
+    networks:
+      - tortoise-network
+
+
+networks:
+  tortoise-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1
