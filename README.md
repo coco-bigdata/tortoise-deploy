@@ -8,4 +8,8 @@
 Up (healthy)
 ./update.sh
 Enter password:(直接回车)
+
+http://ip:8061/
+demo
+Data1110
 ```
