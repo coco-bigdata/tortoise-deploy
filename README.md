@@ -1,6 +1,6 @@
 # tortoise-deploy
 ```
-# 需要自行安装docker和docker-compose
+# 需要提前安装docker和docker-compose
 ./load.sh
 ./start.sh
 ./status.sh
