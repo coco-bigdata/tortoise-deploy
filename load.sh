@@ -1,2 +1,2 @@
 #! /bin/bash
-docker load < images.tar
+sudo docker load < images.tar
