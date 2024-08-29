@@ -72,7 +72,7 @@ services:
     restart: always
 
   tortoise:
-    image: yiluxiangbei/tortoise:1.0
+    image: registry.cn-beijing.aliyuncs.com/luomor/tortoise:lanshi
     container_name: tortoise
     ports:
       - 8061:8081
